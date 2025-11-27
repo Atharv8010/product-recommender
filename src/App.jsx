@@ -1,4 +1,5 @@
 import React, {useState} from 'react'
+import { GoogleGenerativeAI } from "@google/generative-ai"
 
 const products = [
   { id: 1, name: "Samsung Galaxy A54", price: 449, category: "Phone" },
@@ -19,27 +20,18 @@ export default function App(){
 
   async function callGemini(query){
     const key = import.meta.env.VITE_GEMINI_API_KEY
-    if(!key) throw new Error('API key missing. Put VITE_GEMINI_API_KEY in .env')
+    if(!key) throw new Error('API key missing')
+    const client = new GoogleGenerativeAI(key)
+    const model = client.getGenerativeModel({ model: "gemini-1.5-flash" })
     const prompt = `Products: ${JSON.stringify(products)}\nUser query: "${query}"\nReturn only a JSON array of recommended product ids from the list, e.g. [1,4]. If none match return []`
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-mini:generateText?key=${key}`
-    const body = {
+    const result = await model.generateContent({
       prompt: {
         text: prompt
       },
       temperature: 0.0,
       maxOutputTokens: 200
-    }
-    const r = await fetch(url, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(body)
     })
-    if(!r.ok){
-      const t = await r.text()
-      throw new Error('Gemini error: ' + t)
-    }
-    const j = await r.json()
-    const text = j.candidates && j.candidates[0] && j.candidates[0].output ? j.candidates[0].output : (j.result && j.result.output ? j.result.output : JSON.stringify(j))
+    const text = result?.response?.text?.() ?? result?.response?.text ?? JSON.stringify(result)
     return text
   }
 
