@@ -10,4 +10,4 @@
    npm run dev
 
 Notes:
-- This is a simple frontend-only student-style project. The API key will be used from the browser (set via Vite env).
+- This is a simple frontend-only project. The API key is used from the browser (set via Vite env).
